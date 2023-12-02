@@ -1,5 +1,6 @@
 import 'package:ebook_reader/presentation/bloc/get_books_bloc.dart';
 import 'package:ebook_reader/presentation/widgets/grid_view_books.dart';
+import 'package:ebook_reader/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,19 +15,19 @@ class BookShelf extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sua biblioteca'),
+        title: const Text('Biblioteca'),
       ),
       body: BlocBuilder<GetBooksBloc, GetBooksState>(
         builder: (context, state) {
           state.when(
             initial: () => view = const Center(
               child: CircularProgressIndicator(
-                color: Colors.blueGrey,
+                color: AppColors.primary,
               ),
             ),
             loading: () => view = const Center(
               child: CircularProgressIndicator(
-                color: Colors.blueGrey,
+                color: AppColors.primary,
               ),
             ),
             loaded: (books) => view = GridViewBooks(books: books),

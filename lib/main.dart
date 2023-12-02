@@ -1,3 +1,4 @@
+import 'package:ebook_reader/shared/colors.dart';
 import 'package:ebook_reader/shared/injector.dart';
 import 'package:ebook_reader/shared/routes.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Ebook Reader',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
       ),
       routeInformationProvider: AppRouter.router.routeInformationProvider,
