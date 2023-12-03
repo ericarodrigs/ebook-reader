@@ -25,6 +25,7 @@ class BookLocalDataSourceImpl implements BookLocalDataSource {
         await Directory(dbFolder).create(recursive: true);
       }
       final dbPath = join(dbFolder, _dbName);
+      print(dbPath);
       _db = await openDatabase(
         dbPath,
         version: 1,
@@ -61,7 +62,7 @@ class BookLocalDataSourceImpl implements BookLocalDataSource {
           title,
           author,
           cover_url,
-          download_url,
+          download_url
           )
           VALUES
             (
