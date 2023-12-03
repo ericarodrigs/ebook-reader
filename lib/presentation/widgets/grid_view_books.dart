@@ -20,7 +20,7 @@ class GridViewBooks extends StatefulWidget {
 }
 
 class _GridViewBooksState extends State<GridViewBooks> {
-  final platform = MethodChannel('my_channel');
+  final platform = const MethodChannel('erica.flutter.reader/ebook');
   bool loading = false;
   Dio dio = Dio();
   String filePath = "";
