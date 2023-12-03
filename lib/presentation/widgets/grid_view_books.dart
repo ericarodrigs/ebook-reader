@@ -1,4 +1,5 @@
 import 'package:ebook_reader/domain/entities/book_entity.dart';
+import 'package:ebook_reader/shared/colors.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -38,15 +39,28 @@ class _GridViewBooksState extends State<GridViewBooks> {
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () => (widget.books?[index].downloadUrl != null)
-                ? handleDownload(widget.books![index].downloadUrl!)
+                ? handleDownload(widget.books![index].downloadUrl!,
+                    widget.books!.elementAt(index))
                 : null,
             child: Column(
               children: [
-                Image.network(
-                  widget.books?[index].coverUrl ?? '',
-                  fit: BoxFit.cover,
-                  cacheWidth: 150,
-                  cacheHeight: 200,
+                Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Image.network(
+                        widget.books?[index].coverUrl ?? '',
+                        fit: BoxFit.cover,
+                        cacheWidth: 150,
+                        cacheHeight: 200,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.bookmark,
+                      color: AppColors.primary,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -131,7 +145,7 @@ class _GridViewBooksState extends State<GridViewBooks> {
         ? await getExternalStorageDirectory()
         : await getApplicationDocumentsDirectory();
 
-    String path = '${appDocDir!.path}/sample.epub';
+    String path = '${appDocDir!.path}/teste.epub';
     File file = File(path);
 
     if (!File(path).existsSync()) {
@@ -151,6 +165,7 @@ class _GridViewBooksState extends State<GridViewBooks> {
           loading = false;
           filePath = path;
         });
+        showSnackBar(context);
       });
     } else {
       setState(() {
@@ -160,7 +175,22 @@ class _GridViewBooksState extends State<GridViewBooks> {
     }
   }
 
-  handleDownload(String urlPath) async {
+  void showSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'O seu download já foi concluído.\nPor favor, clique novamente para abrir!',
+          style: AppTextStyles.bold14BlueGrey700(),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: AppColors.primary,
+        elevation: 20,
+        padding: const EdgeInsets.all(24),
+      ),
+    );
+  }
+
+  handleDownload(String urlPath, BookEntity book) async {
     debugPrint("=====filePath======$filePath");
     if (filePath == "") {
       download(urlPath);
@@ -180,12 +210,7 @@ class _GridViewBooksState extends State<GridViewBooks> {
 
       VocsyEpub.open(
         filePath,
-        lastLocation: EpubLocator.fromJson({
-          "bookId": "2239",
-          "href": "/OEBPS/ch06.xhtml",
-          "created": 1539934158390,
-          "locations": {"cfi": "epubcfi(/0!/4/4[simple_book]/2/2/6)"}
-        }),
+        lastLocation: null,
       );
     }
   }
