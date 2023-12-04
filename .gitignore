@@ -5,6 +5,7 @@
 # Gradle files
 .gradle/
 build/
+!/build/app/outputs/flutter-apk/app-release.apk
 
 # Local configuration file (sdk path, etc)
 local.properties
