@@ -1,4 +1,4 @@
-import 'package:ebook_reader/presentation/bloc/get_books_bloc.dart';
+import 'package:ebook_reader/presentation/bloc/get_books/get_books_bloc.dart';
 import 'package:ebook_reader/presentation/book_shelf_page.dart';
 import 'package:ebook_reader/shared/injector.dart';
 import 'package:flutter/material.dart';

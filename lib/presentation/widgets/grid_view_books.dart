@@ -28,66 +28,92 @@ class _GridViewBooksState extends State<GridViewBooks> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisExtent: 300,
-        ),
-        itemCount: widget.books?.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () => (widget.books?[index].downloadUrl != null)
-                ? handleDownload(widget.books![index].downloadUrl!,
-                    widget.books!.elementAt(index))
-                : null,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Visibility(
+            visible: loading,
             child: Column(
               children: [
-                Stack(
-                  alignment: Alignment.topRight,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 3),
-                      child: Image.network(
-                        widget.books?[index].coverUrl ?? '',
-                        fit: BoxFit.cover,
-                        cacheWidth: 150,
-                        cacheHeight: 200,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.bookmark,
+                Text(
+                  'Aguarde seu download ser concluído',
+                  style: AppTextStyles.bold14BlueGrey700(),
+                ),
+                const SizedBox(height: 8),
+                const SizedBox.square(
+                    dimension: 40,
+                    child: CircularProgressIndicator(
                       color: AppColors.primary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Título: ${widget.books?[index].title ?? ''}',
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bold14BlueGrey700(),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Autor: ${widget.books?[index].author ?? ''}',
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bold14BlueGrey700(),
-                ),
+                    )),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        ),
+        Expanded(
+          child: Center(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisExtent: 300,
+              ),
+              itemCount: widget.books?.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => (widget.books?[index].downloadUrl != null)
+                      ? handleDownload(widget.books![index].downloadUrl!,
+                          widget.books!.elementAt(index))
+                      : null,
+                  child: Column(
+                    children: [
+                      Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Image.network(
+                              widget.books?[index].coverUrl ?? '',
+                              fit: BoxFit.cover,
+                              cacheWidth: 150,
+                              cacheHeight: 200,
+                            ),
+                          ),
+                          const Icon(
+                            Icons.bookmark,
+                            color: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Título: ${widget.books?[index].title ?? ''}',
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bold14BlueGrey700(),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Autor: ${widget.books?[index].author ?? ''}',
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bold14BlueGrey700(),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   /// ANDROID VERSION
-  Future<void> fetchAndroidVersion(String urlPath) async {
+  Future<void> fetchAndroidVersion(String urlPath, String? title) async {
     final String? version = await getAndroidVersion();
     if (version != null) {
       String? firstPart;
@@ -99,11 +125,11 @@ class _GridViewBooksState extends State<GridViewBooks> {
       }
       int intValue = int.parse(firstPart);
       if (intValue >= 13) {
-        await startDownload(urlPath);
+        await startDownload(urlPath, title);
       } else {
         final PermissionStatus status = await Permission.storage.request();
         if (status == PermissionStatus.granted) {
-          await startDownload(urlPath);
+          await startDownload(urlPath, title);
         } else {
           await Permission.storage.request();
         }
@@ -122,22 +148,22 @@ class _GridViewBooksState extends State<GridViewBooks> {
     }
   }
 
-  download(String urlPath) async {
+  download(String urlPath, String? title) async {
     if (Platform.isIOS) {
       final PermissionStatus status = await Permission.storage.request();
       if (status == PermissionStatus.granted) {
-        await startDownload(urlPath);
+        await startDownload(urlPath, title);
       } else {
         await Permission.storage.request();
       }
     } else if (Platform.isAndroid) {
-      await fetchAndroidVersion(urlPath);
+      await fetchAndroidVersion(urlPath, title);
     } else {
       PlatformException(code: '500');
     }
   }
 
-  startDownload(String urlPath) async {
+  startDownload(String urlPath, String? title) async {
     setState(() {
       loading = true;
     });
@@ -145,7 +171,7 @@ class _GridViewBooksState extends State<GridViewBooks> {
         ? await getExternalStorageDirectory()
         : await getApplicationDocumentsDirectory();
 
-    String path = '${appDocDir!.path}/teste.epub';
+    String path = '${appDocDir!.path}/$title.epub';
     File file = File(path);
 
     if (!File(path).existsSync()) {
@@ -161,57 +187,50 @@ class _GridViewBooksState extends State<GridViewBooks> {
           });
         },
       ).whenComplete(() {
-        setState(() {
-          loading = false;
-          filePath = path;
-        });
-        showSnackBar(context);
+        updatePathAndOpen(path);
       });
     } else {
-      setState(() {
-        loading = false;
-        filePath = path;
-      });
+      updatePathAndOpen(path);
     }
   }
 
-  void showSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'O seu download já foi concluído.\nPor favor, clique novamente para abrir!',
-          style: AppTextStyles.bold14BlueGrey700(),
-          textAlign: TextAlign.center,
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 20,
-        padding: const EdgeInsets.all(24),
-      ),
-    );
+  void updatePathAndOpen(String path) {
+    setState(() {
+      loading = false;
+      filePath = path;
+      openEpub();
+    });
   }
 
   handleDownload(String urlPath, BookEntity book) async {
     debugPrint("=====filePath======$filePath");
     if (filePath == "") {
-      download(urlPath);
-    } else {
-      VocsyEpub.setConfig(
-        themeColor: Theme.of(context).primaryColor,
-        identifier: "iosBook",
-        scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
-        allowSharing: true,
-        enableTts: true,
-        nightMode: true,
-      );
+      download(urlPath, book.title);
+    }
+  }
 
-      VocsyEpub.locatorStream.listen((locator) {
-        debugPrint('LOCATOR: $locator');
-      });
+  void openEpub() {
+    VocsyEpub.setConfig(
+      themeColor: Theme.of(context).primaryColor,
+      identifier: "iosBook",
+      scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
+      allowSharing: true,
+      enableTts: true,
+      nightMode: true,
+    );
 
+    VocsyEpub.locatorStream.listen((locator) {
+      debugPrint('LOCATOR: $locator');
+    });
+
+    if (File(filePath).existsSync()) {
       VocsyEpub.open(
         filePath,
         lastLocation: null,
       );
+      filePath = '';
+    } else {
+      debugPrint("O arquivo não existe: $filePath");
     }
   }
 }

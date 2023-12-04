@@ -6,7 +6,8 @@ import 'package:ebook_reader/domain/usecases/delete_favorite_book_usecase.dart';
 import 'package:ebook_reader/domain/usecases/get_books_usecase.dart';
 import 'package:ebook_reader/domain/usecases/get_favorite_books_usecase.dart';
 import 'package:ebook_reader/domain/usecases/insert_favorite_book_usecase.dart';
-import 'package:ebook_reader/presentation/bloc/get_books_bloc.dart';
+import 'package:ebook_reader/presentation/bloc/get_books/get_books_bloc.dart';
+import 'package:ebook_reader/presentation/bloc/insert_favorite_books/insert_favorite_books_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
@@ -34,7 +35,10 @@ Future<void> initDependencies() async {
 
   ///BloC///
   injector.registerFactory(() => GetBooksBloc(usecase: injector()));
+  injector.registerFactory(() => InsertFavoriteBooksBloc(usecase: injector()));
 
   ///Shared///
   injector.registerLazySingleton(() => http.Client());
+
+  await injector<BookLocalDataSource>().initDb();
 }
